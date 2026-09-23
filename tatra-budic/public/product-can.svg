@@ -1,0 +1,54 @@
+<svg viewBox="0 0 300 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="canTitle">
+  <title id="canTitle">Plechovka nápoja Tatra Budič</title>
+  <defs>
+    <linearGradient id="canBody" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#254F39" />
+      <stop offset="55%" stop-color="#2F6448" />
+      <stop offset="100%" stop-color="#122A1D" />
+    </linearGradient>
+    <linearGradient id="canShine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22" />
+      <stop offset="18%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="rimShade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E1EDE4" />
+      <stop offset="100%" stop-color="#96C0A6" />
+    </linearGradient>
+  </defs>
+
+  <!-- soft ground shadow -->
+  <ellipse cx="150" cy="524" rx="88" ry="14" fill="#0A2118" opacity="0.25" />
+
+  <!-- can body -->
+  <rect x="42" y="58" width="216" height="440" rx="32" fill="url(#canBody)" />
+  <rect x="42" y="58" width="58" height="440" rx="28" fill="url(#canShine)" />
+
+  <!-- bottom rim -->
+  <ellipse cx="150" cy="498" rx="108" ry="18" fill="#0A2118" />
+
+  <!-- top rim -->
+  <ellipse cx="150" cy="58" rx="108" ry="20" fill="url(#rimShade)" />
+  <ellipse cx="150" cy="52" rx="96" ry="16" fill="#F1F6F2" />
+  <ellipse cx="150" cy="52" rx="78" ry="10" fill="#C3DCCC" opacity="0.6" />
+
+  <!-- mountain emblem -->
+  <g transform="translate(150,188)">
+    <circle r="58" fill="#0A2118" opacity="0.35" />
+    <polygon points="-40,28 -14,-16 4,6 26,-28 44,28" fill="#E1EDE4" />
+    <polygon points="-14,-16 4,6 -3,10 -21,-6" fill="#F8FBF9" />
+  </g>
+
+  <!-- wordmark -->
+  <text x="150" y="298" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="42" fill="#F1F6F2">TABU</text>
+  <text x="150" y="326" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="600" font-size="14" letter-spacing="4" fill="#96C0A6">TATRA BUDIČ</text>
+
+  <!-- divider -->
+  <line x1="110" y1="352" x2="190" y2="352" stroke="#437F5F" stroke-width="1.5" />
+
+  <!-- tagline -->
+  <text x="150" y="384" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" letter-spacing="2" fill="#C3DCCC">PRÍRODNÁ ENERGIA</text>
+  <text x="150" y="404" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" letter-spacing="2" fill="#C3DCCC">Z VYSOKÝCH TATIER</text>
+
+  <!-- volume -->
+  <text x="150" y="458" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#679E7E">330 ml</text>
+</svg>
