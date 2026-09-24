@@ -38,7 +38,7 @@ VALUES (
     'Tatra Budič',
     'Prírodný energetický nápoj inšpirovaný Vysokými Tatrami a tradíciou horských bylín.',
     ARRAY['mäta', 'horské byliny', 'guarana', 'extrakt zo zeleného čaju'],
-    '/product-can.svg',
+    '/tatra-budic-can.png',
     2.90
 )
 ON CONFLICT DO NOTHING;

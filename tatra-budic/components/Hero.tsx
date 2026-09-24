@@ -43,9 +43,9 @@ export default function Hero() {
 
         <div className="flex justify-center lg:justify-end">
           <img
-            src="/product-can.svg"
+            src="/tatra-budic-can.png"
             alt="Plechovka nápoja Tatra Budič s motívom tatranských štítov"
-            className="w-48 animate-float drop-shadow-2xl sm:w-60 lg:w-72"
+            className="h-[450px] w-auto object-contain animate-float drop-shadow-2xl sm:h-[550px] lg:h-[620px]"
           />
         </div>
       </div>
