@@ -2,7 +2,7 @@
   "name": "tatra-budic",
   "version": "1.0.0",
   "private": true,
-  "description": "TABU (Tatra Budič) – prírodný energetický nápoj z bylín Vysokých Tatier. Univerzitný startupový projekt.",
+  "description": "TABU (Tatra Budič) – prírodný energetický nápoj z bylín Vysokých Tatier. Univerzitný startupový проект.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -20,9 +20,14 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "tailwindcss": "^3.4.0",
-    "postcss": "^8.4.0",
+    "postcss": "^8.5.23",
     "autoprefixer": "^10.4.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.0.0"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "$postcss"
+    }
   }
 }

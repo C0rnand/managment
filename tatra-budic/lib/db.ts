@@ -104,7 +104,7 @@ const PRODUCTS: Product[] = [
     description:
       "Prírodný energetický nápoj inšpirovaný Vysokými Tatrami a tradíciou horských bylín.",
     ingredients: ["mäta", "horské byliny", "guarana", "extrakt zo zeleného čaju"],
-    image_url: "/product-can.svg",
+    image_url: "/tatra-budic-can.png",
     price: 2.9,
   },
 ];
