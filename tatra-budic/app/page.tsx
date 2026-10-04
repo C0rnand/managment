@@ -6,6 +6,10 @@ import AboutUs from "@/components/AboutUs";
 import ContactForm from "@/components/ContactForm";
 import Footer from "@/components/Footer";
 
+// Produkty sa čítajú z databázy – stránka sa obnoví najviac raz za minútu,
+// takže zmeny v DB (nový nápoj, cena) sa prejavia bez nového nasadenia.
+export const revalidate = 60;
+
 export default function Home() {
   return (
     <>

@@ -1,75 +1,19 @@
 /**
  * lib/db.ts
  * ---------------------------------------------------------------------------
- * Dátová vrstva aplikácie Tatra Budič (TABU).
+ * Dátová vrstva Tatra Budič (TABU).
  *
- * V tomto stave projekt NEPOUŽÍVA žiadnu reálnu databázu – `getProducts()`
- * a `createOrder()` pracujú nad dátovým úložiskom v pamäti (pole v tomto
- * súbore), takže appka beží okamžite po `npm install && npm run dev` bez
- * akejkoľvek ďalšej konfigurácie.
+ * - Ak sú nastavené SUPABASE_URL a SUPABASE_SERVICE_ROLE_KEY, používa Supabase
+ *   (PostgreSQL – schéma v database/schema.sql).
+ * - Ak nie sú, použije sa úložisko v pamäti (ako doteraz), takže web beží aj
+ *   bez databázy (lokálny vývoj, preview bez premenných).
  *
- * Súbor je ale zámerne napísaný tak, aby sa dal neskôr pripojiť na skutočnú
- * PostgreSQL databázu bez zmeny čo i len jedného riadku mimo tohto súboru –
- * komponenty a API route (app/api/orders/route.ts) volajú len funkcie
- * `getProducts` / `createOrder`, nikdy priamo SQL.
- *
- * Návrh schémy nájdete v database/schema.sql.
- *
- * ---------------------------------------------------------------------------
- * MOŽNOSŤ A – Vercel Postgres
- * ---------------------------------------------------------------------------
- * 1. npm install @vercel/postgres
- * 2. Vo Vercel projekte: Storage → Create Database → Postgres → prepojiť.
- * 3. Vercel automaticky doplní premenné POSTGRES_URL a pod. (pozri .env.example)
- * 4. Nahraďte telo funkcií týmto:
- *
- *   import { sql } from '@vercel/postgres';
- *
- *   export async function getProducts(): Promise<Product[]> {
- *     const { rows } = await sql<Product>`SELECT * FROM products ORDER BY id`;
- *     return rows;
- *   }
- *
- *   export async function createOrder(input: NewOrder): Promise<Order> {
- *     const { rows } = await sql<Order>`
- *       INSERT INTO orders (customer_name, email, quantity, message)
- *       VALUES (${input.customer_name}, ${input.email}, ${input.quantity}, ${input.message ?? null})
- *       RETURNING *`;
- *     return rows[0];
- *   }
- *
- * ---------------------------------------------------------------------------
- * MOŽNOSŤ B – Supabase
- * ---------------------------------------------------------------------------
- * 1. npm install @supabase/supabase-js
- * 2. V Supabase projekte: Project Settings → API → skopírovať URL a kľúče
- *    do .env.local (pozri .env.example).
- * 3. Vytvorte klienta a nahraďte telo funkcií:
- *
- *   import { createClient } from '@supabase/supabase-js';
- *
- *   const supabase = createClient(
- *     process.env.NEXT_PUBLIC_SUPABASE_URL!,
- *     process.env.SUPABASE_SERVICE_ROLE_KEY!
- *   );
- *
- *   export async function getProducts(): Promise<Product[]> {
- *     const { data, error } = await supabase.from('products').select('*');
- *     if (error) throw error;
- *     return data as Product[];
- *   }
- *
- *   export async function createOrder(input: NewOrder): Promise<Order> {
- *     const { data, error } = await supabase
- *       .from('orders')
- *       .insert(input)
- *       .select()
- *       .single();
- *     if (error) throw error;
- *     return data as Order;
- *   }
+ * POZOR: kľúč je len serverový (nikdy NEXT_PUBLIC_*). Súbor sa nesmie
+ * importovať z client komponentov – o to sa stará `server-only`.
  * ---------------------------------------------------------------------------
  */
+import "server-only";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export interface Product {
   id: number;
@@ -84,6 +28,7 @@ export interface Order {
   id: number;
   customer_name: string;
   email: string;
+  /** celkový počet kusov v objednávke (orders.total_items) */
   quantity: number;
   message?: string;
   created_at: string;
@@ -91,48 +36,163 @@ export interface Order {
 
 export type NewOrder = Pick<Order, "customer_name" | "email" | "quantity"> & {
   message?: string;
+  /** ak nie je zadaný, použije sa prvý aktívny produkt */
+  product_id?: number;
 };
 
 // ---------------------------------------------------------------------------
-// Mock dáta (nahraďte databázovým dotazom podľa návodu vyššie)
+// Klient
 // ---------------------------------------------------------------------------
 
-const PRODUCTS: Product[] = [
+let client: SupabaseClient | null | undefined;
+let warned = false;
+
+function getClient(): SupabaseClient | null {
+  if (client !== undefined) return client;
+
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    if (!warned) {
+      warned = true;
+      console.warn(
+        "[db] SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY nie sú nastavené – používa sa úložisko v pamäti (dáta sa nestratia len počas behu servera)."
+      );
+    }
+    client = null;
+    return client;
+  }
+
+  client = createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  return client;
+}
+
+export function isDatabaseConfigured(): boolean {
+  return getClient() !== null;
+}
+
+// ---------------------------------------------------------------------------
+// Fallback dáta (bez databázy)
+// ---------------------------------------------------------------------------
+
+const FALLBACK_PRODUCTS: Product[] = [
   {
     id: 1,
     name: "Tatra Budič",
     description:
       "Prírodný energetický nápoj inšpirovaný Vysokými Tatrami a tradíciou horských bylín.",
     ingredients: ["mäta", "horské byliny", "guarana", "extrakt zo zeleného čaju"],
-    image_url: "/tatra-budic-can.png",
+    image_url: "/old/product-can.svg",
     price: 2.9,
   },
 ];
 
-// Objednávky existujú len počas behu servera (resetnú sa pri reštarte /
-// novom nasadení). Toto je zámerné zjednodušenie pre potreby zadania –
-// v produkcii nahraďte skutočnou tabuľkou `orders`.
-const ORDERS: Order[] = [];
-let nextOrderId = 1;
+const MEMORY_ORDERS: Order[] = [];
+let nextMemoryOrderId = 1;
+
+// ---------------------------------------------------------------------------
+// Produkty
+// ---------------------------------------------------------------------------
 
 export async function getProducts(): Promise<Product[]> {
-  return PRODUCTS;
+  const db = getClient();
+  if (!db) return FALLBACK_PRODUCTS;
+
+  const { data, error } = await db
+    .from("products")
+    .select("id, name, description, ingredients, image_url, price")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("id", { ascending: true });
+
+  // Čítanie nesmie zhodiť stránku ani build – radšej záložné dáta.
+  if (error) {
+    console.error("[db] getProducts zlyhalo:", error.message);
+    return FALLBACK_PRODUCTS;
+  }
+  if (!data || data.length === 0) return FALLBACK_PRODUCTS;
+
+  return data.map((row) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    ingredients: row.ingredients ?? [],
+    image_url: row.image_url ?? "",
+    price: Number(row.price),
+  }));
 }
 
 export async function getProductById(id: number): Promise<Product | undefined> {
-  return PRODUCTS.find((product) => product.id === id);
+  const products = await getProducts();
+  return products.find((product) => product.id === id);
 }
 
+// ---------------------------------------------------------------------------
+// Objednávky
+// ---------------------------------------------------------------------------
+
 export async function createOrder(input: NewOrder): Promise<Order> {
-  const order: Order = {
-    id: nextOrderId++,
-    created_at: new Date().toISOString(),
-    ...input,
+  const db = getClient();
+
+  if (!db) {
+    const order: Order = {
+      id: nextMemoryOrderId++,
+      created_at: new Date().toISOString(),
+      customer_name: input.customer_name,
+      email: input.email,
+      quantity: input.quantity,
+      message: input.message,
+    };
+    MEMORY_ORDERS.push(order);
+    return order;
+  }
+
+  // Zápis NIKDY nepadá potichu na záložné dáta – chyba sa musí vrátiť klientovi,
+  // inak by sa objednávka stratila a formulár by ukázal "Ďakujeme".
+  const productId = input.product_id ?? (await getProducts())[0]?.id;
+  if (!productId) throw new Error("Nie je dostupný žiadny produkt.");
+
+  const { data, error } = await db.rpc("create_order", {
+    p_customer_name: input.customer_name,
+    p_email: input.email,
+    p_message: input.message ?? null,
+    p_items: [{ product_id: productId, quantity: input.quantity }],
+  });
+
+  if (error) throw new Error(`create_order zlyhalo: ${error.message}`);
+
+  const row = Array.isArray(data) ? data[0] : data;
+  return {
+    id: row.id,
+    customer_name: row.customer_name,
+    email: row.email,
+    quantity: row.total_items,
+    message: row.message ?? undefined,
+    created_at: row.created_at,
   };
-  ORDERS.push(order);
-  return order;
 }
 
 export async function getOrders(): Promise<Order[]> {
-  return ORDERS;
+  const db = getClient();
+  if (!db) return MEMORY_ORDERS;
+
+  const { data, error } = await db
+    .from("orders")
+    .select("id, customer_name, email, total_items, message, created_at")
+    .order("created_at", { ascending: false })
+    .limit(500);
+
+  if (error) throw new Error(`getOrders zlyhalo: ${error.message}`);
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    customer_name: row.customer_name,
+    email: row.email,
+    quantity: row.total_items,
+    message: row.message ?? undefined,
+    created_at: row.created_at,
+  }));
 }
