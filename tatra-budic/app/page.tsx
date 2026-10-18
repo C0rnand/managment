@@ -5,8 +5,10 @@ import Ponuka from "@/components/Ponuka";
 import Benefits from "@/components/Benefits";
 import AboutUs from "@/components/AboutUs";
 import Team from "@/components/Team";
+import ZadaniaIntro from "@/components/ZadaniaIntro";
 import Timeline from "@/components/Timeline";
 import KPISection from "@/components/KPISection";
+import SWOT from "@/components/SWOT";
 import ContactForm from "@/components/ContactForm";
 import Footer from "@/components/Footer";
 
@@ -21,8 +23,10 @@ export default function Home() {
         <Benefits />
         <AboutUs />
         <Team />
+        <ZadaniaIntro />
         <Timeline />
         <KPISection />
+        <SWOT />
         <ContactForm />
       </main>
       <Footer />

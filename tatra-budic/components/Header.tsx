@@ -8,8 +8,7 @@ const LINKS = [
   { href: "#vyhody", label: "Výhody" },
   { href: "#o-nas", label: "O nás" },
   { href: "#tim", label: "Tím" },
-  { href: "#realizacia", label: "Realizácia" },
-  { href: "#kpi", label: "KPI" },
+  { href: "#zadania", label: "Zadania" },
   { href: "#kontakt", label: "Kontakt" },
 ];
 

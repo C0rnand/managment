@@ -75,8 +75,10 @@ tatra-budic/
 │   ├── Ponuka.tsx               # "Naša ponuka" – 3 príchute (Classic/Exotic/Tropical)
 │   ├── ProductSection.tsx       # prezentácia produktu (zloženie, cena)
 │   ├── Reveal.tsx               # scroll-reveal wrapper (IntersectionObserver)
+│   ├── SWOT.tsx                 # "SWOT analýza" – 4 kvadranty (S/W/O/T)
 │   ├── Team.tsx                 # "Náš tím" – 4 členovia tímu
-│   └── Timeline.tsx             # "Realizácia projektu" – iteratívny model
+│   ├── Timeline.tsx             # "Realizácia projektu" – inkrementálny model (Modul 1/2/3)
+│   └── ZadaniaIntro.tsx         # spoločný nadpis "Zadania" (Realizácia/KPI/SWOT/Gantt)
 ├── database/
 │   └── schema.sql               # návrh DB schémy (PostgreSQL)
 ├── lib/
@@ -128,8 +130,14 @@ npm run lint    # ESLint kontrola
 - **Výhody** – prírodné byliny, energia bez pádu, slovenská inšpirácia, udržateľnosť
 - **O nás** – príbeh startupu, cieľová skupina, kľúčové štatistiky
 - **Náš tím** *(nové)* – 4 členovia tímu s rolami a ikonami
-- **Realizácia projektu** *(nové)* – iteratívny model vývoja, 3 iterácie, stav každej z nich
-- **Ako meriame úspech** *(nové)* – 3 KPI karty v dashboard štýle (pozri sekciu 9)
+- **Zadania** *(nové, zjednotená navigácia)* – spoločný nadpis pre priebežné
+  výstupy projektu; v navigácii je to jeden odkaz (`#zadania`), na stránke pod
+  ním postupne pribúdajú:
+  - **Realizácia projektu** – inkrementálny model vývoja, 3 moduly, stav každého z nich
+  - **Ako meriame úspech** – 3 KPI karty v dashboard štýle (pozri sekciu 9)
+  - **SWOT analýza** *(nové)* – 4 kvadranty (Silné/Slabé stránky, Príležitosti,
+    Hrozby), každý so 4 konkrétnymi bodmi k projektu TABU
+  - *(plánované)* Ganttov diagram
 - **Kontakt / objednávka** – formulár (meno, email, množstvo, správa) →
   `POST /api/orders`; **platby nie sú implementované** (v súlade so zadaním)
 
@@ -197,16 +205,20 @@ výkon stránky. Riešenie:
   nie kaskáda animácií na každom prvku; rešpektuje `prefers-reduced-motion`.
 - **Farebný rytmus sekcií** je zámerný, nie striedanie pre efekt: Hero (video)
   → Produkt (biela) → Naša ponuka (svetlá) → Výhody (svetlá) → O nás (zelená tma)
-  → Tím (čierna/striebro) → Realizácia (biela, čitateľná pre dlhší text)
-  → KPI (zelená tma, dashboard) → Kontakt (biela, pokojná pre formulár).
+  → Tím (čierna/striebro) → Zadania: Realizácia (biela, čitateľná pre dlhší text)
+  → KPI (zelená tma, dashboard) → SWOT (biela, 4 farebne odlíšené kvadranty)
+  → Kontakt (biela, pokojná pre formulár).
 
 ## 8. Databáza
 
-Aplikácia **funguje aj bez pripojenej databázy** – `lib/db.ts` používa dátové
-úložisko v pamäti (mock dáta pre 3 produkty – Classic/Exotic/Tropical,
-objednávky sa ukladajú počas behu servera). Je pripravená tak, aby sa dala
-pripojiť na skutočnú PostgreSQL databázu len úpravou tohto jedného súboru –
-presne to je aj náplň **Iterácie 2** v sekcii "Realizácia projektu" na webe.
+`lib/db.ts` má **pripravený reálny zápis do Supabase** (PostgreSQL) – kód pre
+`getProducts()`, `createOrder()` aj `getOrders()` je plne funkčný a začne
+čítať a zapisovať priamo do Supabase databázy hneď, ako budú nastavené
+prístupové premenné (pozri nižšie). **Databázu zatiaľ nemáme pripojenú** –
+appka preto momentálne beží na dátovom úložisku v pamäti (mock dáta pre
+3 produkty – Classic/Exotic/Tropical), takže nikdy nepadne, len nič trvalo
+neuloží. Presne toto je náplň **Modulu 2** v sekcii "Realizácia projektu" na
+webe.
 
 ### Návrh schémy (`database/schema.sql`)
 
@@ -232,27 +244,35 @@ CREATE TABLE orders (
 );
 ```
 
-### Možnosť A – Vercel Postgres
+### Pripojenie Supabase (kód je už hotový, len treba databázu pripojiť)
 
-1. V projekte na [vercel.com](https://vercel.com) otvorte záložku **Storage**
-   → **Create Database** → **Postgres**, prepojte ju s projektom.
-2. Vercel automaticky doplní premenné `POSTGRES_URL` a pod. do nastavení
-   projektu (a do `.env.local`, ak si databázu stiahnete cez `vercel env pull`).
-3. Spustite `database/schema.sql` (napr. cez záložku "Query" v dashboarde,
-   alebo `psql "$POSTGRES_URL" -f database/schema.sql`).
-4. `npm install @vercel/postgres`.
-5. V `lib/db.ts` nahraďte telo `getProducts` / `createOrder` verziou so
-   `sql` klientom – presný kód nájdete priamo v komentári na začiatku súboru.
+**Cez Vercel integráciu (odporúčané – netreba ručne kopírovať kľúče):**
 
-### Možnosť B – Supabase (aj Neon funguje analogicky)
+1. V Supabase projekte: záložka **SQL Editor** → vložiť a spustiť celý obsah
+   `database/schema.sql` (vytvorí tabuľky `products`/`orders` a naplní 3
+   produkty).
+2. Vo Vercel projekte: **Settings → Integrations** (alebo **Storage → Connect
+   Database**) → pridať **Supabase** a vybrať tento Supabase projekt. Vercel
+   sám doplní premenné prostredia (`SUPABASE_URL`, `SUPABASE_SECRET_KEY`…).
+3. Vercel po pripojení zvyčajne sám spustí nový deploy. Od tej chvíle appka
+   číta produkty aj ukladá objednávky priamo do Supabase – overíte v
+   Supabase: **Table Editor → orders**.
 
-1. Vytvorte projekt na [supabase.com](https://supabase.com) (alebo [neon.tech](https://neon.tech)).
-2. V **SQL Editor** spustite obsah `database/schema.sql`.
-3. V **Project Settings → API** skopírujte URL a kľúče do `.env.local`
-   (pozri `.env.example`).
-4. `npm install @supabase/supabase-js`.
-5. V `lib/db.ts` nahraďte telo funkcií verziou so Supabase klientom – kód je
-   pripravený v komentári na začiatku súboru.
+**Ručne (bez Vercel integrácie):** vytvorte Supabase projekt, spustite
+`database/schema.sql` v SQL Editore, potom skopírujte URL a kľúč z
+**Project Settings → API** do premenných prostredia vo Vercel (**Settings →
+Environment Variables**) alebo lokálne do `.env.local` – presné názvy
+premenných (podporujeme starší aj novší Supabase systém kľúčov) sú v
+`.env.example`.
+
+Balík `@supabase/supabase-js` je už v `package.json` – pri ďalšom
+`npm install`/Vercel builde sa nainštaluje automaticky, nič netreba pridávať
+ručne.
+
+*Vercel Postgres alebo Neon by fungovali tiež (obe sú PostgreSQL), ale
+vyžadujú iný klient (`@vercel/postgres` / `postgres` namiesto
+`@supabase/supabase-js`) – kód v `lib/db.ts` je momentálne napísaný
+konkrétne pre Supabase.*
 
 ## 9. KPI – odôvodnenie
 

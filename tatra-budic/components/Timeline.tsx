@@ -13,7 +13,7 @@ const ITERATIONS = [
     label: "Modul 2",
     title: "Databáza produktov a objednávok",
     description:
-      "Integrácia PostgreSQL databázy (preferovane Neon alebo Supabase PostgreSQL) pre správu produktov a objednávok.",
+      "Supabase (PostgreSQL) integrácia pre produkty a objednávky je pripravená v kóde – po pripojení databázy appka automaticky začne čítať a zapisovať reálne dáta namiesto dočasných mock dát.",
     status: "Pripravené na pripojenie",
     statusTone: "ready" as const,
   },
