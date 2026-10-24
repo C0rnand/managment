@@ -67,6 +67,7 @@ tatra-budic/
 │   ├── Benefits.tsx             # "Načo je to dobré" – výhody produktu
 │   ├── ContactForm.tsx          # objednávkový / kontaktný formulár (client)
 │   ├── Footer.tsx
+│   ├── GanttChart.tsx           # "Ganttov diagram" – 8 úloh, kritická cesta
 │   ├── Header.tsx               # scroll-aware glass navbar + mobilné menu (client)
 │   ├── Hero.tsx                 # úvodná sekcia s videom, názvom, akronymom, anotáciou
 │   ├── HeroVideo.tsx            # <video> vrstva hero sekcie (client, rešpektuje reduced motion)
@@ -137,7 +138,9 @@ npm run lint    # ESLint kontrola
   - **Ako meriame úspech** – 3 KPI karty v dashboard štýle (pozri sekciu 9)
   - **SWOT analýza** *(nové)* – 4 kvadranty (Silné/Slabé stránky, Príležitosti,
     Hrozby), každý so 4 konkrétnymi bodmi k projektu TABU
-  - *(plánované)* Ganttov diagram
+  - **Ganttov diagram** *(nové)* – 8 úloh od analýzy po finálne odovzdanie,
+    vyznačená kritická cesta; záväzné termíny 9. 11. (prezentácia na cvičení)
+    a 23. 11. (pripojenie databázy)
 - **Kontakt / objednávka** – formulár (meno, email, množstvo, správa) →
   `POST /api/orders`; **platby nie sú implementované** (v súlade so zadaním)
 
@@ -207,17 +210,17 @@ výkon stránky. Riešenie:
   → Produkt (biela) → Naša ponuka (svetlá) → Výhody (svetlá) → O nás (zelená tma)
   → Tím (čierna/striebro) → Zadania: Realizácia (biela, čitateľná pre dlhší text)
   → KPI (zelená tma, dashboard) → SWOT (biela, 4 farebne odlíšené kvadranty)
-  → Kontakt (biela, pokojná pre formulár).
+  → Gantt (svetlá, horizontálny diagram) → Kontakt (biela, pokojná pre formulár).
 
 ## 8. Databáza
 
 `lib/db.ts` má **pripravený reálny zápis do Supabase** (PostgreSQL) – kód pre
 `getProducts()`, `createOrder()` aj `getOrders()` je plne funkčný a začne
 čítať a zapisovať priamo do Supabase databázy hneď, ako budú nastavené
-prístupové premenné (pozri nižšie). **Databázu zatiaľ nemáme pripojenú** –
-appka preto momentálne beží na dátovom úložisku v pamäti (mock dáta pre
-3 produkty – Classic/Exotic/Tropical), takže nikdy nepadne, len nič trvalo
-neuloží. Presne toto je náplň **Modulu 2** v sekcii "Realizácia projektu" na
+prístupové premenné (pozri nižšie). **Databázu zatiaľ nemáme pripojenú** (plánované pripojenie: 23. 11. 2026 –
+pozri Ganttov diagram na webe) – appka preto momentálne beží na dátovom
+úložisku v pamäti (mock dáta pre 3 produkty – Classic/Exotic/Tropical), takže
+nikdy nepadne, len nič trvalo neuloží. Presne toto je náplň **Modulu 2** v sekcii "Realizácia projektu" na
 webe.
 
 ### Návrh schémy (`database/schema.sql`)

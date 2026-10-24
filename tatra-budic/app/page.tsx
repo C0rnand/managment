@@ -9,6 +9,7 @@ import ZadaniaIntro from "@/components/ZadaniaIntro";
 import Timeline from "@/components/Timeline";
 import KPISection from "@/components/KPISection";
 import SWOT from "@/components/SWOT";
+import GanttChart from "@/components/GanttChart";
 import ContactForm from "@/components/ContactForm";
 import Footer from "@/components/Footer";
 
@@ -27,6 +28,7 @@ export default function Home() {
         <Timeline />
         <KPISection />
         <SWOT />
+        <GanttChart />
         <ContactForm />
       </main>
       <Footer />
