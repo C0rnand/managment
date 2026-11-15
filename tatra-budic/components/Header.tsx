@@ -31,6 +31,9 @@ export default function Header() {
     : "border-transparent bg-transparent";
   const linkTone = scrolled || open ? "text-forest-700 hover:text-forest-950" : "text-white/80 hover:text-white";
   const wordmarkTone = scrolled || open ? "text-forest-950" : "text-white";
+  const adminTone = scrolled || open
+    ? "border-forest-200 text-forest-700 hover:bg-forest-50"
+    : "border-white/30 text-white/90 hover:bg-white/10";
 
   return (
     <header className={`fixed top-0 z-50 w-full border-b transition-colors duration-300 ${barTone}`}>
@@ -54,12 +57,20 @@ export default function Header() {
           ))}
         </nav>
 
-        <a
-          href="#kontakt"
-          className="hidden rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-forest-950 transition-colors hover:bg-emerald-400 lg:inline-flex"
-        >
-          Objednať
-        </a>
+        <div className="hidden items-center gap-3 lg:flex">
+          <a
+            href="/admin"
+            className={`rounded-full border px-4 py-2.5 text-sm font-medium transition-colors ${adminTone}`}
+          >
+            Admin
+          </a>
+          <a
+            href="#kontakt"
+            className="inline-flex rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-forest-950 transition-colors hover:bg-emerald-400"
+          >
+            Objednať
+          </a>
+        </div>
 
         <button
           type="button"
@@ -98,6 +109,12 @@ export default function Header() {
             className="mt-2 rounded-full bg-forest-950 px-5 py-2.5 text-center text-sm font-medium text-white"
           >
             Objednať
+          </a>
+          <a
+            href="/admin"
+            className="rounded-lg px-3 py-2.5 text-center text-sm text-forest-700 hover:bg-forest-50"
+          >
+            Admin
           </a>
         </nav>
       )}

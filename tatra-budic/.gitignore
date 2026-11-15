@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.env
+.env*.local
+mrg-tatra-budic.txt
+.mrgignore
+
+# mrgfile
+mrg-*.txt
+mrg-*/
