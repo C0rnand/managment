@@ -67,25 +67,33 @@ tatra-budic/
 │   ├── Benefits.tsx             # "Načo je to dobré" – výhody produktu
 │   ├── ContactForm.tsx          # objednávkový / kontaktný formulár (client)
 │   ├── Footer.tsx
-│   ├── GanttChart.tsx           # "Ganttov diagram" – 8 úloh, kritická cesta
+│   ├── GanttChart.tsx           # "Ganttov diagram" – 8 úloh, kritická cesta, pôvodné termíny, značka "Stav k …"
 │   ├── Header.tsx               # scroll-aware glass navbar + mobilné menu (client)
 │   ├── Hero.tsx                 # úvodná sekcia s videom, názvom, akronymom, anotáciou
 │   ├── HeroVideo.tsx            # <video> vrstva hero sekcie (client, rešpektuje reduced motion)
 │   ├── KPISection.tsx           # "Ako meriame úspech" – 3 KPI dashboard karty
 │   ├── MountainBackground.tsx   # dekoratívne SVG pozadie hôr (KPI sekcia)
+│   ├── PdfDownloads.tsx         # tlačidlá „Otvoriť PDF“ pre zadania 5 – 7 (Business case, Finančná analýza, Analýza rizík)
 │   ├── Ponuka.tsx               # "Naša ponuka" – 3 príchute (Classic/Exotic/Tropical)
 │   ├── ProductSection.tsx       # prezentácia produktu (zloženie, cena)
 │   ├── Reveal.tsx               # scroll-reveal wrapper (IntersectionObserver)
 │   ├── SWOT.tsx                 # "SWOT analýza" – 4 kvadranty (S/W/O/T)
 │   ├── Team.tsx                 # "Náš tím" – 4 členovia tímu
 │   ├── Timeline.tsx             # "Realizácia projektu" – inkrementálny model (Modul 1/2/3)
-│   └── ZadaniaIntro.tsx         # spoločný nadpis "Zadania" (Realizácia/KPI/SWOT/Gantt)
+│   └── ZadaniaIntro.tsx         # spoločný nadpis "Zadania" (Realizácia/KPI/SWOT/Gantt + PDF tlačidlá)
 ├── database/
 │   └── schema.sql               # návrh DB schémy (PostgreSQL)
 ├── lib/
-│   └── db.ts                    # dátová vrstva – pripravená na napojenie DB
+│   ├── businessCaseContent.ts   # zdroj textov pre PDF 5. zadania (business case, štúdia uskutočniteľnosti, rozhodnutie no-go); web ich nepoužíva
+│   ├── db.ts                    # dátová vrstva – pripravená na napojenie DB
+│   ├── financeContent.ts        # zdroj čísel pre PDF 6. zadania (finančná analýza); sumy sa dopočítavajú z konštánt; web ich nepoužíva
+│   ├── riskContent.ts           # zdroj údajov pre PDF 7. zadania (8 rizík, matica 5×5); skóre P×D sa dopočítava; web ich nepoužíva
+│   └── schedule.ts              # JEDINÝ zdroj harmonogramu (úlohy, dátumy, stav) – používa ho Gantt aj údaje pre PDF zadaní
 ├── public/
 │   ├── logo-mark.svg            # vektorový brand mark (shield + tatranské vrchy + blesk)
+│   ├── TABU-5-zadanie-business-case.pdf  # PDF 5. zadania – otvára ho tlačidlo v sekcii Zadania
+│   ├── TABU-6-zadanie-financna-analyza.pdf  # PDF 6. zadania – otvára ho tlačidlo v sekcii Zadania
+│   ├── TABU-7-zadanie-analyza-rizik.pdf  # PDF 7. zadania (A4 na šírku) – otvára ho tlačidlo v sekcii Zadania
 │   ├── cans/
 │   │   ├── classic.webp         # produktová fotka – Tatra Budič Classic (bez pozadia)
 │   │   ├── exotic.webp          # produktová fotka – Tatra Budič Exotic (bez pozadia)
@@ -138,9 +146,39 @@ npm run lint    # ESLint kontrola
   - **Ako meriame úspech** – 3 KPI karty v dashboard štýle (pozri sekciu 9)
   - **SWOT analýza** *(nové)* – 4 kvadranty (Silné/Slabé stránky, Príležitosti,
     Hrozby), každý so 4 konkrétnymi bodmi k projektu TABU
-  - **Ganttov diagram** *(nové)* – 8 úloh od analýzy po finálne odovzdanie,
-    vyznačená kritická cesta; záväzné termíny 9. 11. (prezentácia na cvičení)
-    a 23. 11. (pripojenie databázy)
+  - **Ganttov diagram** *(aktualizované: stav k 23. 11. 2026)* – 8 úloh od
+    základného webu po testovanie a nasadenie, vyznačená kritická cesta,
+    pôvodné termíny posunutých úloh (tenká čiara) a značka „Stav k 23. 11.“.
+    Diagram ukazuje projekt tak, akoby bolo k 23. 11. 2026 hotové všetko
+    (úlohy #1 – #6 vrátane pripojenia databázy); zostávajú #7 a #8. Po cvičení
+    9. 11. sa databáza pripája až 23. 11., preto sú úlohy #6 – #8 posunuté
+    o ≈ 2 týždne a projekt končí 15. 12. 2026 (pôvodne 1. 12. 2026). Všetky
+    dátumy a stavy sú na jednom mieste v `lib/schedule.ts` (konštanta
+    `STATUS_DATE`); skutočný dnešný stav sa vráti zmenou `STATUS_DATE` a stavu
+    úlohy #6 na `current`. Gantt aj údaje pre PDF (business case), ktoré z harmonogramu
+    čerpajú čísla (počet hotových úloh, posun konca, zostávajúce dni), sa po
+    zmene prepočítajú samé.
+  - **PDF k zadaniam 5 – 7** *(`components/PdfDownloads.tsx`)* – na webe je
+    pre 5. zadanie (Business case a uskutočniteľnosť), 6. zadanie (Finančná
+    analýza) a 7. zadanie (Analýza rizík) len po jednom tlačidle
+    **„Otvoriť PDF“**; samotný text zadaní je v PDF súboroch v `public/`
+    (`TABU-5-zadanie-business-case.pdf`, `TABU-6-zadanie-financna-analyza.pdf`,
+    `TABU-7-zadanie-analyza-rizik.pdf`). Súbory musia v `public/` ostať,
+    inak tlačidlo vedie na chybu 404.
+    - 5. zadanie – problém, ciele, cieľová skupina, konkurencia, štúdia
+      uskutočniteľnosti; **rozhodnutie tímu: výrobu a predaj skutočného nápoja
+      nerealizujeme, je finančne príliš náročná**, web s ukážkovými
+      objednávkami dokončíme v rámci semestra.
+    - 6. zadanie – finančná analýza na 12 mesiacov (21. 9. 2026 – 20. 9. 2027)
+      s optimistickým a pesimistickým odhadom: web (peňažné výdavky ≈ 35 €)
+      a výroba, ktorú nerealizujeme.
+    - 7. zadanie – 8 rizík špecifických pre náš web, kód a tím, každé
+      s pravdepodobnosťou, dopadom (1–5), prioritou P × D, stratégiou riešenia
+      a zodpovedným členom, plus matica 5 × 5 pred opatreniami a po nich.
+    - PDF sú hotové súbory. Údaje, z ktorých vznikli, sú v
+      `lib/businessCaseContent.ts`, `lib/financeContent.ts` a
+      `lib/riskContent.ts` (web ich nepoužíva); po ich zmene sa PDF samo
+      neprepíše, treba ho vygenerovať znova.
 - **Kontakt / objednávka** – formulár (meno, email, množstvo, správa) →
   `POST /api/orders`; **platby nie sú implementované** (v súlade so zadaním)
 
@@ -210,7 +248,8 @@ výkon stránky. Riešenie:
   → Produkt (biela) → Naša ponuka (svetlá) → Výhody (svetlá) → O nás (zelená tma)
   → Tím (čierna/striebro) → Zadania: Realizácia (biela, čitateľná pre dlhší text)
   → KPI (zelená tma, dashboard) → SWOT (biela, 4 farebne odlíšené kvadranty)
-  → Gantt (svetlá, horizontálny diagram) → Kontakt (biela, pokojná pre formulár).
+  → Gantt (svetlá, horizontálny diagram) → PDF tlačidlá zadaní 5 – 7 (biela,
+  tri karty) → Kontakt (biela, pokojná pre formulár).
 
 ## 8. Databáza
 
