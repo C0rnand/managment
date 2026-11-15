@@ -25,7 +25,7 @@ export async function login(formData: FormData) {
 
 export async function logout() {
   (await cookies()).delete({ name: ADMIN_COOKIE, path: "/admin" });
-  redirect("/admin/login");
+  redirect("/"); // po odhlásení späť na hlavnú stránku webu
 }
 
 // Označí objednávku ako testovaciu/spam (vylúči sa z KPI) alebo späť.
