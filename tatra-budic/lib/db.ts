@@ -111,7 +111,7 @@ function mapOrderRow(row: Record<string, unknown>): Order {
     id: Number(row.id),
     customer_name: String(row.customer_name),
     email: String(row.email),
-    quantity: Number(row.quantity),
+    quantity: Number(row.total_items ?? row.quantity),
     message: row.message == null ? undefined : String(row.message),
     created_at: String(row.created_at),
   };
@@ -177,6 +177,8 @@ export async function getProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")
     .select("*")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
     .order("id", { ascending: true });
 
   if (error) {
@@ -210,16 +212,31 @@ export async function createOrder(input: NewOrder): Promise<Order> {
     return order;
   }
 
-  const { data, error } = await supabase
-    .from("orders")
-    .insert({
-      customer_name: input.customer_name,
-      email: input.email,
-      quantity: input.quantity,
-      message: input.message ?? null,
-    })
-    .select()
-    .single();
+  // Nová schéma (database/schema_v2): objednávka + položky sa vytvoria v jednej
+  // transakcii cez SQL funkciu create_order. Formulár zatiaľ posiela len počet
+  // kusov, preto sa použije prvý aktívny produkt (Classic).
+  const { data: firstProduct, error: productError } = await supabase
+    .from("products")
+    .select("id")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("id", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (productError || !firstProduct) {
+    console.error("[lib/db] createOrder: nenašiel sa aktívny produkt:", productError?.message);
+    throw new Error("Objednávku sa nepodarilo uložiť do databázy.");
+  }
+
+  const quantity = Math.min(99, Math.max(1, Math.floor(input.quantity)));
+
+  const { data, error } = await supabase.rpc("create_order", {
+    p_customer_name: input.customer_name,
+    p_email: input.email,
+    p_message: input.message ?? null,
+    p_items: [{ product_id: firstProduct.id, quantity }],
+  });
 
   if (error) {
     // Tu (na rozdiel od getProducts) vedome NEpadáme späť na mock úložisko –
